@@ -1,4 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
@@ -11,31 +17,96 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    console.log(createUserDto);
+    try {
+      const existingUser = await this.userRepo.findOne({
+        where: { email: createUserDto.email },
+      });
 
-    const userCreate = await this.userRepo.create(createUserDto);
+      if (existingUser) {
+        throw new ConflictException('Usuario con este email ya existe');
+      }
 
-    console.log(userCreate);
-
-    const superAdmin = this.userRepo.create(createUserDto);
-
-    console.log(superAdmin);
-    return this.userRepo.save(superAdmin);
+      const user = this.userRepo.create(createUserDto);
+      return await this.userRepo.save(user);
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al crear el usuario');
+    }
   }
 
   async findAll() {
-    return await this.userRepo.find();
+    try {
+      const users = await this.userRepo.find();
+      if (!users.length) {
+        throw new NotFoundException('No se encontraron usuarios');
+      }
+      return users;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al obtener los usuarios');
+    }
   }
 
-  async findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    try {
+      const user = await this.userRepo.findOne({
+        where: { id },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al obtener el usuario');
+    }
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    try {
+      const user = await this.findOne(id);
+
+      if (updateUserDto.email) {
+        const existingUser = await this.userRepo.findOne({
+          where: { email: updateUserDto.email },
+        });
+
+        if (existingUser && existingUser.id !== id) {
+          throw new ConflictException('Email ya está en uso');
+        }
+      }
+
+      const updatedUser = Object.assign(user, updateUserDto);
+
+      return await this.userRepo.save(updatedUser);
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException('Error al actualizar el usuario');
+    }
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    try {
+      const user = await this.findOne(id);
+      return await this.userRepo.remove(user);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al eliminar el usuario');
+    }
   }
 }

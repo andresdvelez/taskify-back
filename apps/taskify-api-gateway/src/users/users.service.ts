@@ -19,11 +19,11 @@ export class UsersService {
     return this.usersClient.send('users.findOne', id);
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  update(id: string, updateUserDto: UpdateUserDto) {
     return this.usersClient.send('users.update', { id, ...updateUserDto });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.usersClient.send('users.remove', id);
   }
 }
