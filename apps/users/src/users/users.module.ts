@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { usersProvider } from './users.provider';
-import { DBModule } from '@taskify/database/db.module';
+import { DBModule } from '@users/database/db.module';
 
 @Module({
   imports: [DBModule],

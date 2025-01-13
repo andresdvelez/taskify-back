@@ -1,5 +1,4 @@
 import { Users } from '@users/users/entities/user.entity';
-import { Project } from 'apps/projects/src/projects/entities/project.entity';
 
 export const dbConfig = () => ({
   port: parseInt(process.env.PORT, 10) || 3000,
@@ -11,7 +10,7 @@ export const dbConfig = () => ({
     username: process.env.DATA_BASE_USERNAME,
     password: process.env.DATA_BASE_HOST_PASSWORD,
     database: process.env.DATA_BASE_NAME,
-    entities: [Users, Project],
+    entities: [Users],
     synchronize: false,
   },
 });
