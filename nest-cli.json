@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/taskify-backend/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/taskify-api-gateway/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/taskify-api-gateway",
+  "projects": {
+    "taskify-api-gateway": {
+      "type": "application",
+      "root": "apps/taskify-api-gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/taskify-api-gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/taskify-api-gateway/tsconfig.app.json"
+      }
+    },
+    "users": {
+      "type": "application",
+      "root": "apps/users",
+      "entryFile": "main",
+      "sourceRoot": "apps/users/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/users/tsconfig.app.json"
+      }
+    },
+    "projects": {
+      "type": "application",
+      "root": "apps/projects",
+      "entryFile": "main",
+      "sourceRoot": "apps/projects/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/projects/tsconfig.app.json"
+      }
+    }
+  }
+}
