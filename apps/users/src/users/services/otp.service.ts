@@ -10,16 +10,20 @@ import { Repository } from 'typeorm';
 import { Users } from '../entities/user.entity';
 import { UtilEmail } from '../utils/send-email';
 import { VerifyOtpDto } from '../dto/verify-otp.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class OtpService {
   constructor(
     @Inject('USERS_REPOSITORY') private readonly userRepo: Repository<Users>,
     private readonly sendEmail: UtilEmail,
+    private jwtService: JwtService,
   ) {}
 
   async otpSend({ email }: { email: string }) {
     try {
+      console.log('test');
+
       const existingUser = await this.userRepo.findOneBy({
         email,
       });
@@ -44,7 +48,6 @@ export class OtpService {
 
       return { message: ' Verification email sent' };
     } catch (error) {
-      console.log(error);
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -77,11 +80,16 @@ export class OtpService {
         throw new BadRequestException('Invalid OTP');
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...restUser } = user;
+
+      const userToken = this.jwtService.sign(restUser);
+
       user.otp = null;
       user.otpExpiry = null;
       await this.userRepo.save(user);
 
-      return user;
+      return { ...restUser, authToken: userToken };
     } catch (error) {
       console.log(error);
       if (

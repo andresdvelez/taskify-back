@@ -5,25 +5,28 @@ import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class ProjectsService {
-  constructor(@Inject('PROJECTS_CLIENT') private booksClient: ClientProxy) {}
+  constructor(@Inject('PROJECTS_CLIENT') private projectsClient: ClientProxy) {}
 
   create(createProjectDto: CreateProjectDto) {
-    return this.booksClient.send('projects.create', createProjectDto);
+    return this.projectsClient.send('projects.create', createProjectDto);
   }
 
   findAll() {
-    return this.booksClient.send('projects.findAll', {});
+    return this.projectsClient.send('projects.findAll', {});
   }
 
   findOne(id: number) {
-    return this.booksClient.send('projects.findOne', id);
+    return this.projectsClient.send('projects.findOne', id);
   }
 
   update(id: number, updateProjectDto: UpdateProjectDto) {
-    return this.booksClient.send('projects.update', { id, updateProjectDto });
+    return this.projectsClient.send('projects.update', {
+      id,
+      updateProjectDto,
+    });
   }
 
   remove(id: number) {
-    return this.booksClient.send('projects.remove', id);
+    return this.projectsClient.send('projects.remove', id);
   }
 }

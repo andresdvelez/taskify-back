@@ -4,8 +4,7 @@ import { UsersController } from './users.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { OtpService } from './services/otp.service';
 import { PassportModule } from '@nestjs/passport';
-import { LocalStrategy } from '@taskify/users/strategies/local.strategy';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtStrategy } from '../strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -19,6 +18,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     ]),
   ],
   controllers: [UsersController],
-  providers: [UsersService, OtpService, LocalStrategy, JwtStrategy],
+  providers: [UsersService, OtpService, JwtStrategy],
 })
 export class UsersModule {}

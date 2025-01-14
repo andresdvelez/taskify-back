@@ -19,6 +19,7 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@users/*": ["./apps/users/src/*"],
+      "@projects/*": ["./apps/projects/src/*"],
       "@taskify/*": ["./apps/taskify-api-gateway/src/*"]
     }
   }

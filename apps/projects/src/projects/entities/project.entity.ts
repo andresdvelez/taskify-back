@@ -18,7 +18,7 @@ export class Project {
   @Column('text')
   description: string;
 
-  @Column('simple-array')
+  @Column('simple-array', { nullable: true, default: [] })
   tasks: string[];
 
   @Column({

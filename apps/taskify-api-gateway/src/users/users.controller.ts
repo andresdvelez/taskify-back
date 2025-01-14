@@ -14,8 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { OtpService } from './services/otp.service';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { SignInDto } from './dto/sign-in.dto';
-import { LocalGuard } from './guards/local.guard';
-import { JwtAuthGuard } from './guards/jwt.guard';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 
 @Controller('users')
 export class UsersController {
@@ -25,7 +24,6 @@ export class UsersController {
   ) {}
 
   @Post('/sign-in')
-  @UseGuards(LocalGuard)
   signIn(@Body() signInDto: SignInDto) {
     const user = this.usersService.signIn(signInDto);
     return user;
@@ -37,7 +35,6 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   findAll() {
     return this.usersService.findAll();
   }

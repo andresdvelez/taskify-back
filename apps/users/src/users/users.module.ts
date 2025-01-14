@@ -5,19 +5,28 @@ import { DBModule } from '@users/database/db.module';
 import { UsersService } from './services/users.service';
 import { OtpService } from './services/otp.service';
 import { UtilEmail } from './utils/send-email';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     DBModule,
-    ConfigModule,
-    JwtModule.register({
-      secret: 'ABC123',
-      signOptions: { expiresIn: '1h' },
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRATION', '15m'),
+        },
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [UsersController],
   providers: [UsersService, OtpService, UtilEmail, ...usersProvider],
+  exports: [UsersService],
 })
 export class UsersModule {}
