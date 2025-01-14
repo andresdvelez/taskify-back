@@ -8,7 +8,12 @@ import { DBModule } from '../../users/src/database/db.module';
 import { ProjectsModule } from './projects/projects.module';
 
 @Module({
-  imports: [UsersModule, DBModule, ConfigModule.forRoot({ load: [dbConfig] }), ProjectsModule],
+  imports: [
+    UsersModule,
+    DBModule,
+    ConfigModule.forRoot({ load: [dbConfig] }),
+    ProjectsModule,
+  ],
   controllers: [TaskifyApiGatewayController],
   providers: [TaskifyApiGatewayService],
 })

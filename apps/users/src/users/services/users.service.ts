@@ -5,16 +5,44 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
-import { Users } from './entities/user.entity';
+import { Users } from '../entities/user.entity';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { UpdateUserDto } from '../dto/update-user.dto';
+import { SignInDto } from '../dto/sign-in.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject('USERS_REPOSITORY') private readonly userRepo: Repository<Users>,
+    private jwtService: JwtService,
   ) {}
+
+  async signIn(signInDto: SignInDto) {
+    try {
+      const existingUser = await this.userRepo.findOneBy({
+        email: signInDto.email,
+      });
+
+      if (!existingUser) {
+        throw new ConflictException('Usuario con este email no existe');
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...user } = existingUser;
+
+      const userToken = this.jwtService.sign(user);
+
+      return { ...existingUser, authToken: userToken };
+    } catch (error) {
+      console.log(error);
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al iniciar sesión');
+    }
+  }
 
   async create(createUserDto: CreateUserDto) {
     try {
@@ -29,6 +57,7 @@ export class UsersService {
       const user = this.userRepo.create(createUserDto);
       return await this.userRepo.save(user);
     } catch (error) {
+      console.log(error);
       if (error instanceof ConflictException) {
         throw error;
       }

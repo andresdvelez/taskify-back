@@ -11,6 +11,6 @@ export const dbConfig = () => ({
     password: process.env.DATA_BASE_HOST_PASSWORD,
     database: process.env.DATA_BASE_NAME,
     entities: [Users],
-    synchronize: false,
+    synchronize: true,
   },
 });

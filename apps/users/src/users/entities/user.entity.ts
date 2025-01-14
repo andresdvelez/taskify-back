@@ -34,7 +34,11 @@ export class Users {
   @CreateDateColumn()
   createdAt: Date;
 
-  // @ManyToMany(() => () => {})
+  @Column({ default: '', nullable: true })
+  otp: string;
+
+  @Column({ nullable: true })
+  otpExpiry: Date;
 
   @Column('simple-array', { nullable: true, default: [] })
   projects: string[];
