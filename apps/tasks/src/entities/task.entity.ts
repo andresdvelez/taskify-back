@@ -38,6 +38,9 @@ export class Tasks {
   @Column()
   createdBy: string;
 
+  @Column()
+  projectId: string;
+
   @Column({ type: 'timestamptz' })
   deadline: Date;
 
