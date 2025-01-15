@@ -88,7 +88,7 @@ export class UsersService {
       };
 
       const accessToken = this.jwtService.sign(payload, {
-        expiresIn: '15m',
+        expiresIn: '7d',
       });
 
       const refreshToken = this.jwtService.sign(payload, {
@@ -97,7 +97,7 @@ export class UsersService {
 
       return {
         ...userWithoutPassword,
-        accessToken,
+        authToken: accessToken,
         refreshToken,
       };
     } catch (error) {

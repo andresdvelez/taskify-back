@@ -19,7 +19,7 @@ export class ProjectsController {
   }
 
   @MessagePattern('projects.findOne')
-  findOne(@Payload() id: number) {
+  findOne(@Payload() id: string) {
     return this.projectsService.findOne(id);
   }
 
@@ -29,7 +29,7 @@ export class ProjectsController {
   }
 
   @MessagePattern('projects.remove')
-  remove(@Payload() id: number) {
+  remove(@Payload() id: string) {
     return this.projectsService.remove(id);
   }
 }

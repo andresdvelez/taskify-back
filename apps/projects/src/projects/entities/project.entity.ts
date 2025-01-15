@@ -12,18 +12,19 @@ export class Project {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @Column('text')
   description: string;
 
-  @Column('simple-array', { nullable: true, default: [] })
+  @Column('simple-array', { default: [] })
   tasks: string[];
 
   @Column({
     type: 'enum',
     enum: ProjectStatus,
+    default: ProjectStatus.ACTIVE,
   })
   status: ProjectStatus;
 
@@ -32,7 +33,4 @@ export class Project {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
-  @Column()
-  numberOfTasks: number;
 }

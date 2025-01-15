@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { dbConfig } from '../../users/src/database/db.config';
 import { DBModule } from '../../users/src/database/db.module';
 import { ProjectsModule } from './projects/projects.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ProjectsModule } from './projects/projects.module';
     DBModule,
     ConfigModule.forRoot({ load: [dbConfig] }),
     ProjectsModule,
+    TasksModule,
   ],
   controllers: [TaskifyApiGatewayController],
   providers: [TaskifyApiGatewayService],

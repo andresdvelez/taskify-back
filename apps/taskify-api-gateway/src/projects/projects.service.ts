@@ -15,18 +15,18 @@ export class ProjectsService {
     return this.projectsClient.send('projects.findAll', {});
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.projectsClient.send('projects.findOne', id);
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
+  update(id: string, updateProjectDto: UpdateProjectDto) {
     return this.projectsClient.send('projects.update', {
       id,
       updateProjectDto,
     });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.projectsClient.send('projects.remove', id);
   }
 }

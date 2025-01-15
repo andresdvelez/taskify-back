@@ -22,8 +22,6 @@ export class OtpService {
 
   async otpSend({ email }: { email: string }) {
     try {
-      console.log('test');
-
       const existingUser = await this.userRepo.findOneBy({
         email,
       });
@@ -48,7 +46,7 @@ export class OtpService {
 
       return { message: ' Verification email sent' };
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (error instanceof HttpException) {
         throw error;
       }
       throw new BadRequestException('Error al obtener el usuario');
