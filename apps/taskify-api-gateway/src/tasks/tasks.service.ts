@@ -4,6 +4,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { RemoveCommentDto } from './dto/remove-comment.dto';
+import { FindTasksDto } from './dto/find-tasks.dto';
 
 @Injectable()
 export class TasksService {
@@ -13,8 +14,8 @@ export class TasksService {
     return this.tasksClient.send('tasks.create', createTaskDto);
   }
 
-  findAll() {
-    return this.tasksClient.send('tasks.findAll', {});
+  findAll(findTasksDto: FindTasksDto) {
+    return this.tasksClient.send('tasks.findAll', findTasksDto);
   }
 
   getByIds(ids: string[]) {
@@ -29,7 +30,7 @@ export class TasksService {
     return this.tasksClient.send('tasks.update', { id, ...updateTaskDto });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.tasksClient.send('tasks.remove', id);
   }
 

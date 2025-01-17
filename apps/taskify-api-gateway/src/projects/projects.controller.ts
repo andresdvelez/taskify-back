@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../guards/jwt.guard';
 import { AddTaskDto } from './dto/add-task.dto';
 import { AssignMemberDto } from './dto/assign-member.dto';
 import { FindByIdsDto } from './dto/find-by-ids.dto';
+import { RemoveTaskDto } from './dto/remove-task.dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -70,7 +71,13 @@ export class ProjectsController {
     return this.projectsService.addTask(addTaskDto);
   }
 
+  @Post('remove-task')
+  removeTask(@Body() removeTaskDto: RemoveTaskDto) {
+    return this.projectsService.removeTask(removeTaskDto);
+  }
+
   @Patch('assign/:id')
+  @UseGuards(JwtAuthGuard)
   assignMember(@Body() assignMemberDto: AssignMemberDto, @Param() id: string) {
     return this.projectsService.assignMember(assignMemberDto, id);
   }

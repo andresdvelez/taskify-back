@@ -37,6 +37,7 @@ export class UsersController {
   }
 
   @Post('invite')
+  @UseGuards(JwtAuthGuard)
   inviteMember(@Body() inviteMemberDto: InviteMemberDto) {
     return this.usersService.inviteMember(inviteMemberDto);
   }
@@ -47,6 +48,7 @@ export class UsersController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   findAll() {
     return this.usersService.findAll();
   }

@@ -7,13 +7,22 @@ import {
 } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Repository, In } from 'typeorm';
+import {
+  Repository,
+  In,
+  ILike,
+  FindOptionsWhere,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Between,
+} from 'typeorm';
 import { Tasks } from '../entities/task.entity';
 import { lastValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { TaskComment } from '../interfaces/task.interface';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { RemoveCommentDto } from './dto/remove-comment.dto';
+import { TaskFilters } from '../interfaces/task.filters';
 
 @Injectable()
 export class TasksService {
@@ -24,6 +33,47 @@ export class TasksService {
     private readonly taskRepo: Repository<Tasks>,
     private readonly httpService: HttpService,
   ) {}
+
+  private buildSearchQuery(searchTerm: string): FindOptionsWhere<Tasks>[] {
+    return [
+      { title: ILike(`%${searchTerm}%`) },
+      { description: ILike(`%${searchTerm}%`) },
+    ];
+  }
+
+  private buildBaseWhereClause(filters: TaskFilters): FindOptionsWhere<Tasks> {
+    const where: FindOptionsWhere<Tasks> = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.priority) {
+      where.priority = filters.priority;
+    }
+
+    if (filters.projectId) {
+      where.projectId = filters.projectId;
+    }
+
+    if (filters.createdBy) {
+      where.createdBy = filters.createdBy;
+    }
+
+    if (filters.assignedTo?.length) {
+      where.assignedTo = In(filters.assignedTo);
+    }
+
+    if (filters.deadlineStart && filters.deadlineEnd) {
+      where.deadline = Between(filters.deadlineStart, filters.deadlineEnd);
+    } else if (filters.deadlineStart) {
+      where.deadline = MoreThanOrEqual(filters.deadlineStart);
+    } else if (filters.deadlineEnd) {
+      where.deadline = LessThanOrEqual(filters.deadlineEnd);
+    }
+
+    return where;
+  }
 
   async create(createTaskDto: CreateTaskDto): Promise<Tasks> {
     try {
@@ -62,8 +112,36 @@ export class TasksService {
     }
   }
 
-  async findAll(): Promise<Tasks[]> {
-    return await this.taskRepo.find();
+  async findAll(filters?: TaskFilters): Promise<Tasks[]> {
+    try {
+      const baseWhere = this.buildBaseWhereClause(filters || {});
+
+      if (filters?.search) {
+        const searchQueries = this.buildSearchQuery(filters.search);
+        const combinedQueries = searchQueries.map((searchQuery) => ({
+          ...baseWhere,
+          ...searchQuery,
+        }));
+
+        return await this.taskRepo.find({
+          where: combinedQueries,
+          order: {
+            createdAt: 'DESC',
+            priority: 'DESC',
+          },
+        });
+      }
+
+      return await this.taskRepo.find({
+        where: baseWhere,
+        order: {
+          createdAt: 'DESC',
+          priority: 'DESC',
+        },
+      });
+    } catch {
+      throw new BadRequestException('Error fetching tasks with filters');
+    }
   }
 
   async findOne(id: string): Promise<Tasks> {
@@ -102,10 +180,28 @@ export class TasksService {
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.taskRepo.delete(id);
+    try {
+      const task = await this.findOne(id);
 
-    if (result.affected === 0) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
+      await this.taskRepo.delete(id);
+
+      if (task.projectId) {
+        try {
+          await lastValueFrom(
+            this.httpService.post(`${this.gatewayUrl}/projects/remove-task`, {
+              projectId: task.projectId,
+              taskId: id,
+            }),
+          );
+        } catch (error) {
+          console.error('Failed to remove task from project:', error);
+        }
+      }
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error removing task');
     }
   }
 

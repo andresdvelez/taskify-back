@@ -8,6 +8,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { AddTaskDto } from './dto/add-task.dto';
 import { AssignMemberDto } from './dto/assign-member.dto';
 import { FindByIdsDto } from './dto/find-by-ids.dto';
+import { RemoveTaskDto } from './dto/remove-task.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -54,6 +55,10 @@ export class ProjectsService {
 
   addTask(addTaskDto: AddTaskDto) {
     return this.projectsClient.send('projects.addTask', addTaskDto);
+  }
+
+  removeTask(removeTaskDto: RemoveTaskDto) {
+    return this.projectsClient.send('projects.removeTask', removeTaskDto);
   }
 
   assignMember(assignMemberDto: AssignMemberDto, id: string) {

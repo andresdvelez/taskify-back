@@ -5,6 +5,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { RemoveCommentDto } from './dto/remove-comment.dto';
+import { FindTasksDto } from './dto/find-tasks.dto';
 
 @Controller()
 export class TasksController {
@@ -16,8 +17,17 @@ export class TasksController {
   }
 
   @MessagePattern('tasks.findAll')
-  findAll() {
-    return this.tasksService.findAll();
+  findAll(findTasksDto: FindTasksDto) {
+    const filters = {
+      ...findTasksDto,
+      deadlineStart: findTasksDto.deadlineStart
+        ? new Date(findTasksDto.deadlineStart)
+        : undefined,
+      deadlineEnd: findTasksDto.deadlineEnd
+        ? new Date(findTasksDto.deadlineEnd)
+        : undefined,
+    };
+    return this.tasksService.findAll(filters);
   }
 
   @MessagePattern('tasks.getByIds')
