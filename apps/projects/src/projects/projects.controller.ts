@@ -37,7 +37,9 @@ export class ProjectsController {
 
   @MessagePattern('projects.updateStatus')
   updateStatus(@Payload() updateProjectStatusDto: UpdateProjectStatusDto) {
-    return this.projectsService.updateProjectStatus(updateProjectStatusDto);
+    return this.projectsService.updateProjectStatus(
+      updateProjectStatusDto.updateProjectStatusDto,
+    );
   }
 
   @MessagePattern('projects.remove')

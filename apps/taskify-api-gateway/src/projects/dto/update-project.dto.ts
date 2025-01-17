@@ -4,7 +4,9 @@ import { ProjectStatus } from '@projects/projects/dto/project.dto';
 
 export class UpdateProjectDto extends PartialType(CreateProjectDto) {}
 
-export class UpdateProjectStatusDto extends PartialType(CreateProjectDto) {
-  id: string;
-  status: ProjectStatus;
+export class UpdateProjectStatusDto {
+  updateProjectStatusDto: {
+    id: string;
+    status: ProjectStatus;
+  };
 }

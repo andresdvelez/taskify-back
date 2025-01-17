@@ -12,7 +12,6 @@ import { In, Repository } from 'typeorm';
 import { ProjectStatus } from './dto/project.dto';
 import { lastValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
-import { UpdateProjectStatusDto } from '@taskify/projects/dto/update-project.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -118,7 +117,6 @@ export class ProjectsService {
     try {
       const project = await this.findOne(id);
 
-      // If name is being updated, check for duplicates
       if (updateProjectDto.name && updateProjectDto.name !== project.name) {
         const existingProject = await this.projectRepo.findOne({
           where: { name: updateProjectDto.name },
@@ -169,7 +167,10 @@ export class ProjectsService {
     }
   }
 
-  async updateProjectStatus(updateProjectStatusDto: UpdateProjectStatusDto) {
+  async updateProjectStatus(updateProjectStatusDto: {
+    id: string;
+    status: ProjectStatus;
+  }) {
     try {
       const project = await this.findOne(updateProjectStatusDto.id);
 
@@ -184,7 +185,8 @@ export class ProjectsService {
         }),
       );
 
-      return await this.projectRepo.save(project);
+      const updatedProject = await this.projectRepo.save(project);
+      return updatedProject;
     } catch {
       throw new BadRequestException('Error updating project status');
     }
