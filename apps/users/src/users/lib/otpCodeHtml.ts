@@ -1,4 +1,4 @@
-export const otpCodeHtml = (message: string, code: string) => {
+export const otpCodeHtml = (message: string) => {
   return `<!DOCTYPE html>
   <html lang="es">
   <head>
@@ -34,7 +34,7 @@ export const otpCodeHtml = (message: string, code: string) => {
                       </tr>
 
                       <!-- White Box Content -->
-                     ${message} ${code}
+                     ${message}
                       <!-- White Box Content -->
 
                       <!-- Footer -->

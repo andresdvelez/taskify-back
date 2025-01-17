@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { ClientProxy } from '@nestjs/microservices';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { RemoveCommentDto } from './dto/remove-comment.dto';
 
 @Injectable()
 export class TasksService {
@@ -15,6 +17,10 @@ export class TasksService {
     return this.tasksClient.send('tasks.findAll', {});
   }
 
+  getByIds(ids: string[]) {
+    return this.tasksClient.send('tasks.getByIds', ids);
+  }
+
   findOne(id: number) {
     return this.tasksClient.send('tasks.findOne', id);
   }
@@ -25,5 +31,13 @@ export class TasksService {
 
   remove(id: number) {
     return this.tasksClient.send('tasks.remove', id);
+  }
+
+  addCommentToTask(createCommentDto: CreateCommentDto) {
+    return this.tasksClient.send('tasks.addComment', createCommentDto);
+  }
+
+  removeCommentFromTask(removeCommentDto: RemoveCommentDto) {
+    return this.tasksClient.send('tasks.removeComment', removeCommentDto);
   }
 }

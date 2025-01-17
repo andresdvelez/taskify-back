@@ -15,12 +15,20 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { SignInDto } from '../dto/sign-in.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
+import { UserRole } from '@users/dto/user.dto';
+import { InviteMemberDto } from '../dto/invite-member.dto';
+import { UtilEmail } from '../utils/send-email';
+import {
+  SignUpWithTokenDto,
+  TokenPayload,
+} from '../interfaces/sign-up-with-token';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject('USERS_REPOSITORY') private readonly userRepo: Repository<Users>,
     private jwtService: JwtService,
+    private readonly sendEmail: UtilEmail,
   ) {}
 
   private async verifyPassword(
@@ -131,11 +139,142 @@ export class UsersService {
 
       return userWithoutPassword;
     } catch (error) {
-      console.log(error);
       if (error instanceof ConflictException) {
         throw error;
       }
       throw new BadRequestException('Error creating user');
+    }
+  }
+
+  async inviteMember(inviteMemberDto: InviteMemberDto) {
+    try {
+      const existingUser = await this.userRepo.findOne({
+        where: { id: inviteMemberDto.ownerId },
+      });
+
+      const userToInvitate = await this.userRepo.findOne({
+        where: { email: inviteMemberDto.email },
+      });
+
+      if (userToInvitate) {
+        throw new ConflictException('User with this email already exists');
+      }
+
+      const invitationToken = this.jwtService.sign(
+        {
+          email: inviteMemberDto.email,
+          invitedBy: existingUser.id,
+          role: inviteMemberDto.role,
+        },
+        {
+          expiresIn: '24h',
+        },
+      );
+
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Team Invitation</h2>
+          <p>You have been invited to join ${existingUser.firstName} ${existingUser.lastName}'s team!</p>
+          <div style="margin: 30px 0;">
+            <a href="http://localhost:3000/${inviteMemberDto.locale}/sign-up?token=${invitationToken}" 
+               style="background-color: #4CAF50; 
+                      color: white; 
+                      padding: 14px 20px; 
+                      text-decoration: none; 
+                      border-radius: 4px;
+                      display: inline-block;">
+              Accept Invitation & Sign Up
+            </a>
+          </div>
+          <p>This invitation link will expire in 24 hours.</p>
+          <p>If you did not expect this invitation, please ignore this email.</p>
+        </div>
+      `;
+
+      await this.sendEmail.send(
+        emailHtml,
+        inviteMemberDto.email,
+        `Invitation to join ${existingUser.firstName} ${existingUser.lastName}'s team`,
+      );
+
+      return { message: 'Invitation email sent successfully' };
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new BadRequestException('Error sending email');
+    }
+  }
+
+  async signUpWithToken(signUpDto: SignUpWithTokenDto) {
+    try {
+      let tokenPayload: TokenPayload;
+      try {
+        tokenPayload = this.jwtService.verify(signUpDto.token) as TokenPayload;
+      } catch {
+        throw new UnauthorizedException('Invalid or expired invitation token');
+      }
+
+      const invitingUser = await this.userRepo.findOne({
+        where: { id: tokenPayload.invitedBy },
+      });
+
+      if (!invitingUser) {
+        throw new NotFoundException('Inviting user no longer exists');
+      }
+
+      const existingUser = await this.userRepo.findOne({
+        where: { email: tokenPayload.email },
+      });
+
+      if (existingUser) {
+        throw new ConflictException('User with this email already exists');
+      }
+
+      const hashedPassword = await this.hashPassword(signUpDto.password);
+
+      const newUser = this.userRepo.create({
+        email: tokenPayload.email,
+        firstName: signUpDto.firstName,
+        lastName: signUpDto.lastName,
+        password: hashedPassword,
+        role: tokenPayload.role,
+        projects: [],
+      });
+
+      const savedUser = await this.userRepo.save(newUser);
+
+      const authPayload = {
+        sub: savedUser.id,
+        email: savedUser.email,
+        role: savedUser.role,
+      };
+
+      const accessToken = this.jwtService.sign(authPayload, {
+        expiresIn: '7d',
+      });
+
+      const refreshToken = this.jwtService.sign(authPayload, {
+        expiresIn: '7d',
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...userWithoutPassword } = savedUser;
+
+      return {
+        ...userWithoutPassword,
+        authToken: accessToken,
+        refreshToken,
+      };
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException('Error during sign up process');
     }
   }
 
@@ -174,10 +313,37 @@ export class UsersService {
 
   async findAll() {
     try {
-      const users = await this.userRepo.find();
+      const users = await this.userRepo.find({
+        order: {
+          createdAt: 'ASC',
+        },
+      });
       if (!users.length) {
         throw new NotFoundException('No users found');
       }
+      return users.map(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        ({ password, ...userWithoutPassword }) => userWithoutPassword,
+      );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error fetching users');
+    }
+  }
+
+  async findTeam() {
+    try {
+      const users = await this.userRepo.find({
+        where: {
+          role: UserRole.TEAM_MEMBER,
+        },
+        order: {
+          createdAt: 'ASC',
+        },
+      });
+
       return users.map(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ({ password, ...userWithoutPassword }) => userWithoutPassword,
@@ -244,6 +410,115 @@ export class UsersService {
         throw error;
       }
       throw new BadRequestException('Error deleting user');
+    }
+  }
+
+  async assignProject({
+    projectId,
+    userId,
+  }: {
+    projectId: string;
+    userId: string;
+  }) {
+    try {
+      const user = await this.findOne(userId);
+
+      if (!user.projects) {
+        user.projects = [];
+      }
+
+      user.projects.push(projectId);
+
+      return await this.userRepo.save(user);
+    } catch {
+      throw new BadRequestException('Error adding project to user');
+    }
+  }
+
+  async notifyUser({
+    message,
+    userIds,
+  }: {
+    message: string;
+    userIds: string[];
+  }) {
+    try {
+      const notifications = [];
+
+      for (const userId of userIds) {
+        const user = await this.findOne(userId);
+
+        if (!user.notifications) {
+          user.notifications = [];
+        }
+
+        const notification = {
+          id: `${user.notifications.length + 1}-${user.id}`,
+          message,
+          createdAt: new Date(),
+        };
+
+        user.notifications.push(notification);
+        await this.userRepo.save(user);
+        notifications.push({ userId, notification });
+      }
+
+      return { message: 'Notifications sent successfully', notifications };
+    } catch {
+      throw new BadRequestException('Error sending notification to user');
+    }
+  }
+
+  async deleteNotification(deleteNotificationDto: {
+    id: {
+      userId: string;
+      id: string;
+    };
+  }) {
+    try {
+      const user = await this.findOne(deleteNotificationDto.id.userId);
+
+      if (!user.notifications) {
+        throw new NotFoundException('No notifications found for this user');
+      }
+
+      const notificationExists = user.notifications.some(
+        (notification) => notification.id === deleteNotificationDto.id.id,
+      );
+
+      if (!notificationExists) {
+        throw new NotFoundException('Notification not found');
+      }
+
+      user.notifications = user.notifications.filter(
+        (notification) => notification.id !== deleteNotificationDto.id.id,
+      );
+
+      const updatedUser = await this.userRepo.save(user);
+
+      return {
+        message: 'Notification deleted successfully',
+        notifications: updatedUser.notifications,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error deleting notification');
+    }
+  }
+
+  async getNotifications(userId: { id: string }) {
+    try {
+      const user = await this.findOne(userId.id);
+
+      if (!user.notifications) {
+        user.notifications = [];
+      }
+
+      return user.notifications;
+    } catch {
+      throw new BadRequestException('Error sending notification to user');
     }
   }
 }

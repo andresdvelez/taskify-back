@@ -7,18 +7,17 @@ import { otpCodeHtml } from '../lib/otpCodeHtml';
 export class UtilEmail {
   constructor(private configService: ConfigService) {}
 
-  async send(message: string, email: string, code: string, subject: string) {
+  async send(message: string, email: string, subject: string) {
     const RESEND = this.configService.get('RESEND');
     const resend = new Resend(RESEND);
     const { error } = await resend.emails.send({
       from: 'info@blooma.io',
       to: email,
       subject,
-      html: otpCodeHtml(message, code),
+      html: otpCodeHtml(message),
     });
 
     if (error) {
-      console.log(error);
       throw new HttpException('failed-send-email', HttpStatus.CONFLICT);
     }
   }

@@ -15,6 +15,8 @@ import { OtpService } from './services/otp.service';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { JwtAuthGuard } from '../guards/jwt.guard';
+import { InviteMemberDto } from './dto/invite-member.dto';
+import { SignUpWithTokenDto } from './interfaces/sign-up-with-token';
 
 @Controller('users')
 export class UsersController {
@@ -34,9 +36,25 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @Post('invite')
+  inviteMember(@Body() inviteMemberDto: InviteMemberDto) {
+    return this.usersService.inviteMember(inviteMemberDto);
+  }
+
+  @Post('sign-up-token')
+  signUpWithToken(@Body() signUpDto: SignUpWithTokenDto) {
+    return this.usersService.signUpWithToken(signUpDto);
+  }
+
   @Get()
   findAll() {
     return this.usersService.findAll();
+  }
+
+  @Get('get-team')
+  @UseGuards(JwtAuthGuard)
+  findTeam() {
+    return this.usersService.findTeam();
   }
 
   @Get(':id')
@@ -65,5 +83,26 @@ export class UsersController {
   @Post('/otp/verify')
   otpVerify(@Body() verifyOtpDto: VerifyOtpDto) {
     return this.otpService.otpVerify(verifyOtpDto);
+  }
+
+  @Post('assign-project')
+  assignProject(@Body() data: { projectId: string; userId: string }) {
+    return this.usersService.assignProject(data);
+  }
+
+  @Post('notify-user')
+  notifyUser(@Body() data: { message: string; userIds: string[] }) {
+    return this.usersService.notifyUser(data);
+  }
+
+  @Delete('delete-notification/:id/:userId')
+  deleteNotification(@Param() id: string, userId: string) {
+    return this.usersService.deleteNotification({ id, userId });
+  }
+
+  @Get('get-notifications/:id')
+  @UseGuards(JwtAuthGuard)
+  getNotifications(@Param() id: string) {
+    return this.usersService.getNotifications(id);
   }
 }

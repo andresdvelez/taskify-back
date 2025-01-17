@@ -10,6 +10,7 @@ export interface Project {
   name: string;
   description: string;
   tasks: string[];
+  assignees: string[];
   status: ProjectStatus;
   createdAt: Date;
   updatedAt: Date;

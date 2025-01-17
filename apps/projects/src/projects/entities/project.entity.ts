@@ -18,8 +18,14 @@ export class Project {
   @Column('text')
   description: string;
 
-  @Column('simple-array', { default: [] })
+  @Column('simple-array')
   tasks: string[];
+
+  @Column('simple-array')
+  assignees: string[];
+
+  @Column()
+  createdBy: string;
 
   @Column({
     type: 'enum',

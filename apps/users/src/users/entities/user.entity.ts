@@ -6,6 +6,7 @@ import {
   PrimaryColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { UserNotifications } from '../interfaces/user-notifications';
 
 @Entity()
 export class Users {
@@ -40,6 +41,9 @@ export class Users {
   @Column({ nullable: true })
   otpExpiry: Date;
 
-  @Column('simple-array', { nullable: true, default: [] })
+  @Column('jsonb', { nullable: true, default: [] })
+  notifications: UserNotifications[];
+
+  @Column('simple-array')
   projects: string[];
 }

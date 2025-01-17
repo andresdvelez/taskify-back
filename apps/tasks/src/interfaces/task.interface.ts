@@ -10,6 +10,13 @@ export enum TaskPriority {
   HIGH = 'high',
 }
 
+export interface TaskComment {
+  id: string;
+  authorId: string;
+  message: string;
+  timestamp: Date;
+}
+
 export interface ITask {
   id: string;
   title: string;
@@ -20,7 +27,7 @@ export interface ITask {
   deadline: Date | string;
   createdBy: string;
   projectId: string;
-  comments: string[];
+  comments: TaskComment[];
   createdAt: Date | string;
   updatedAt: Date | string;
 }

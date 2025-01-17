@@ -38,9 +38,8 @@ export class OtpService {
       await this.userRepo.save(existingUser);
 
       await this.sendEmail.send(
-        'Here is your verification code',
+        `Here is your verification code ${code}`,
         email,
-        code,
         'Verification Code',
       );
 
@@ -89,7 +88,6 @@ export class OtpService {
 
       return { ...restUser, authToken: userToken };
     } catch (error) {
-      console.log(error);
       if (
         error instanceof NotFoundException ||
         error instanceof BadRequestException

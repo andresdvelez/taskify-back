@@ -10,6 +10,8 @@ import {
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { RemoveCommentDto } from './dto/remove-comment.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -25,6 +27,12 @@ export class TasksController {
     return this.tasksService.findAll();
   }
 
+  @Post('get-by-ids')
+  getByIds(@Body() data: { tasksIds: string[] }) {
+    const { tasksIds } = data;
+    return this.tasksService.getByIds(tasksIds);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tasksService.findOne(+id);
@@ -38,5 +46,15 @@ export class TasksController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.tasksService.remove(+id);
+  }
+
+  @Post('add-comment')
+  addCommentToTask(@Body() createCommentDto: CreateCommentDto) {
+    return this.tasksService.addCommentToTask(createCommentDto);
+  }
+
+  @Post('remove-comment')
+  removeCommentFromTask(@Body() removeCommentDto: RemoveCommentDto) {
+    return this.tasksService.removeCommentFromTask(removeCommentDto);
   }
 }

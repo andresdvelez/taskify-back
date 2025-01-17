@@ -10,8 +10,14 @@ import {
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
+import {
+  UpdateProjectDto,
+  UpdateProjectStatusDto,
+} from './dto/update-project.dto';
 import { JwtAuthGuard } from '../guards/jwt.guard';
+import { AddTaskDto } from './dto/add-task.dto';
+import { AssignMemberDto } from './dto/assign-member.dto';
+import { FindByIdsDto } from './dto/find-by-ids.dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -29,10 +35,22 @@ export class ProjectsController {
     return this.projectsService.findAll();
   }
 
+  @Post('projects-by-ids')
+  @UseGuards(JwtAuthGuard)
+  findByIds(@Body() findByIdsDto: FindByIdsDto) {
+    return this.projectsService.findByIds(findByIdsDto);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     return this.projectsService.findOne(id);
+  }
+
+  @Patch('/update-status')
+  @UseGuards(JwtAuthGuard)
+  updateStatus(@Body() updateProjectStatusDto: UpdateProjectStatusDto) {
+    return this.projectsService.updateStatus(updateProjectStatusDto);
   }
 
   @Patch(':id')
@@ -45,5 +63,15 @@ export class ProjectsController {
   @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.projectsService.remove(id);
+  }
+
+  @Post('add-task')
+  addTask(@Body() addTaskDto: AddTaskDto) {
+    return this.projectsService.addTask(addTaskDto);
+  }
+
+  @Patch('assign/:id')
+  assignMember(@Body() assignMemberDto: AssignMemberDto, @Param() id: string) {
+    return this.projectsService.assignMember(assignMemberDto, id);
   }
 }

@@ -5,7 +5,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { TaskPriority, TaskStatus } from '../interfaces/task.interface';
+import {
+  TaskComment,
+  TaskPriority,
+  TaskStatus,
+} from '../interfaces/task.interface';
 
 @Entity()
 export class Tasks {
@@ -44,8 +48,8 @@ export class Tasks {
   @Column({ type: 'timestamptz' })
   deadline: Date;
 
-  @Column('simple-array')
-  comments: string[];
+  @Column('jsonb', { nullable: true, default: [] })
+  comments: TaskComment[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
