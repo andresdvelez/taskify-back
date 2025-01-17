@@ -7,6 +7,9 @@
 
 Taskify Backend is a robust task management system built using a microservices architecture with NestJS. The system consists of multiple services handling users, projects, and tasks, orchestrated through an API gateway.
 
+## Notion
+[Link of Notion](https://aspiring-plum-d49.notion.site/17ece7ae9590808498e3d8164f9eb34a?v=17ece7ae959081d2b991000c95572145)
+
 ## Prerequisites
 
 - Node.js (v22 or higher)
